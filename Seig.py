@@ -1,10 +1,10 @@
 import sys     # let  python use your file system
 import os      # help python identify your OS
 import pygame  # load pygame keywords
+from pytmx import load_pygame
 import random
 
 #Objects
-
 ##############################################################################################
 class Player(pygame.sprite.Sprite): #Spawn Players
     def __init__(self):
@@ -15,6 +15,7 @@ class Player(pygame.sprite.Sprite): #Spawn Players
         self.movey = 0
         self.frame = 0
         self.images = []
+        self.images2 = []
         for i in range(1,3):
             img = pygame.image.load(os.path.join('images','hero' + str(i) + '.png')).convert()
             img.convert_alpha()
@@ -22,13 +23,20 @@ class Player(pygame.sprite.Sprite): #Spawn Players
             self.images.append(img)
             self.image = self.images[0]
             self.rect  = self.image.get_rect()
+            
+            """img2 = pygame.image.load(os.path.join('images','hero' + str(i) + '.png')).convert()
+            img2.convert_alpha()
+            img2.set_colorkey(ALPHA)
+            self.images2.append(img)
+            self.image = self.images2[0]
+            self.rect  = self.image.get_rect()"""
 
     def control(self,x,y):
         '''
         control player movement
         '''
         self.movex += x
-        aux = self.movey
+        aux = y
         self.movey += y
         if(aux>= self.movey):
             self.gravity()
@@ -60,12 +68,12 @@ class Player(pygame.sprite.Sprite): #Spawn Players
         for enemy in hit_list:
             self.health -= 1
             self.isAlive()
-        
-        ground_hit_list = pygame.sprite.spritecollide(self, ground_list, False)
+            print(self.health)
+        """ground_hit_list = pygame.sprite.spritecollide(self, ground_list, False)
         for g in ground_hit_list:
             self.health -= 1
             self.isAlive()
-            print(self.health)
+            print(self.health)""" #Estou tirando o hit com o chão porque é inutil
 
     def isAlive(self):
         if(self.health == 0):
@@ -73,11 +81,11 @@ class Player(pygame.sprite.Sprite): #Spawn Players
                 pygame.quit()
                 sys.exit()
                 main = False
-                print(self.health)
+                
 
         
     def gravity(self):
-        self.movey += 0.03 # how fast player falls
+        self.movey += 0.1 # how fast player falls
         if self.rect.y > WORLDY/2 and self.movey >= 0:
             self.movey = 0
             self.rect.y = WORLDY/2
@@ -151,8 +159,8 @@ class Level():
             while i < len(ploc):
                 j=0
                 while j <= ploc[i][2]:
-                    plat = Platform((ploc[i][0]+(j*tx)),ploc[i][1],tx,ty,'ground.png')
-                    plat_list.add(plat)
+                    #plat = Platform((ploc[i][0]+(j*tx)),ploc[i][1],tx,ty,'ground.png')
+                    #plat_list.add(plat)
                     j=j+1
                 print('run' + str(i) + str(ploc[i]))
                 i=i+1
@@ -184,9 +192,13 @@ CLOCK = pygame.time.Clock()
 pygame.init()
 main = True
 
-WORLD = pygame.display.set_mode([WORLDX,WORLDY])
-BACKDROP = pygame.image.load(os.path.join('images','stage.png')).convert()
-BACKDROPBOX = WORLD.get_rect()
+screen = pygame.display.set_mode([WORLDX,WORLDY])
+pygame.display.set_caption("Seig Game")
+
+#BACKDROP = load_pygame("Map/map1.tmx")
+BACKDROP = pygame.image.load(os.path.join('images','map1.png')).convert()
+#pygame.DROPTEXT()
+BACKDROPBOX = screen.get_rect()
 
 player = Player()   # spawn player
 player.rect.x = WORLDX/2
@@ -227,7 +239,7 @@ while main == True:
             if event.key == pygame.K_RIGHT or event.key == ord('d'):
                 player.control(steps,0)
             if event.key == pygame.K_UP or event.key == ord('w'):
-                player.control(0,-steps)
+                player.control(0,-steps-steps)
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == ord('a'):
@@ -235,19 +247,18 @@ while main == True:
             if event.key == pygame.K_RIGHT or event.key == ord('d'):
                 player.control(-steps,0)
             if event.key == pygame.K_UP or event.key == ord('w'):
-                player.control(0,steps)
+                player.control(0,steps+steps)
             if event.key == ord('m'):
                 pygame.quit()
                 sys.exit()
                 main = False
-
-    WORLD.blit(BACKDROP, BACKDROPBOX)
+    screen.blit(BACKDROP, BACKDROPBOX)
     player.gravity() # check gravity
     player.update()
-    player_list.draw(WORLD) #refresh player position
-    enemy_list.draw(WORLD)  # refresh enemies
-    ground_list.draw(WORLD)
-    plat_list.draw(WORLD)
+    player_list.draw(screen) #refresh player position
+    enemy_list.draw(screen)  # refresh enemies
+    ground_list.draw(screen)
+    plat_list.draw(screen)
     for e in enemy_list:
         e.move()
     pygame.display.flip()
